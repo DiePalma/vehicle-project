@@ -1,0 +1,90 @@
+services:
+  rails_app:
+    build:
+      context: ./vehicle-map
+      dockerfile: Dockerfile
+    container_name: rails_app
+    
+    environment:
+
+      RAILS_ENV: development
+      RAILS_MASTER_KEY: "ad2cd598930b8c96ce19ef3fd79b9b71"
+      
+      DATABASE_URL: postgres://postgres:password@db:5432/vehicle_map_development
+      REDIS_URL: redis://redis:6379/0
+      
+    volumes:
+      - ./vehicle-map:/rails
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+      - redis
+    networks:
+      - my-network
+    command: ["sh", "-c", "bin/rails db:prepare && bin/rails server -b 0.0.0.0 -p 3000"]
+
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    environment:
+       POSTGRES_DB: vehicle_map_development
+       POSTGRES_USER: postgres
+       POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - my-network
+
+  redis:
+    image: redis:7
+    container_name: redis_server
+    ports:
+      - "6379:6379"
+    networks:
+      - my-network
+
+  sidekiq:
+    build:
+      context: ./vehicle-map
+      dockerfile: Dockerfile
+    container_name: sidekiq    
+    environment:
+      DATABASE_URL: postgres://postgres:password@db:5432/vehicle_map_development
+      POSTGRES_DB: vehicle_map_development
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      DATABASE_HOST: db
+      REDIS_URL: redis://redis:6379/0
+      RAILS_ENV: development
+    volumes:
+      - ./vehicle-map:/rails
+    depends_on:
+      - db
+      - redis
+    networks:
+      - my-network
+    command: bundle exec sidekiq
+
+  frontend:
+    build:
+      context: ./vehicle-front
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "80:80"
+    networks:
+      - my-network
+    environment:
+      - VITE_API_URL=http://rails_app:3000
+    depends_on:
+      - rails_app 
+
+
+networks:
+  my-network:
+
+volumes:
+  postgres_data:
