@@ -1,0 +1,6 @@
+[submodule "vehicle-map"]
+	path = vehicle-map
+	url = https://github.com/DiePalma/vehicle-map
+[submodule "vehicle-front"]
+	path = vehicle-front
+	url = https://github.com/DiePalma/vehicle-front

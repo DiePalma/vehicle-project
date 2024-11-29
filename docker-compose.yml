@@ -8,7 +8,7 @@ services:
     environment:
 
       RAILS_ENV: development
-      RAILS_MASTER_KEY: "ad2cd598930b8c96ce19ef3fd79b9b71"
+      
       
       DATABASE_URL: postgres://postgres:password@db:5432/vehicle_map_development
       REDIS_URL: redis://redis:6379/0
